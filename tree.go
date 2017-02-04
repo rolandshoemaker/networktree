@@ -14,10 +14,6 @@ type Tree struct {
 	value interface{}
 }
 
-// func isPowerOfTwo(x uint8) bool {
-// 	return (x != 0) && (x&(x-1)) == 0
-// }
-
 func popcount(i uint8) int {
 	i -= ((i >> 1) & 0x55)
 	i = (i & 0x33) + ((i >> 2) & 0x33)
@@ -63,7 +59,6 @@ func (t *Tree) Lookup(ip net.IP) interface{} {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
 	node := t
-	// descend := false
 	var longestPrefix *Tree
 	for i := 0; i < len(ip)*8; i++ {
 		bit := (ip[i/8] >> uint8(7-i%8)) & 0x01
