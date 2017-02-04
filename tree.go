@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"net"
 	"sync"
 )
 
+// Tree is a binary tree that stores network prefixes
 type Tree struct {
 	mu *sync.RWMutex // only used at the root node
 
@@ -20,10 +20,13 @@ func popcount(i uint8) int {
 	return int((i + (i >> 4)) & 0x0F)
 }
 
+// New returns an initialized Tree
 func New() *Tree {
 	return &Tree{mu: new(sync.RWMutex)}
 }
 
+// Insert adds a network and the associated value to the tree. The passed
+// net.IPNet is assumed to be valid.
 func (t *Tree) Insert(n *net.IPNet, value interface{}) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
@@ -35,7 +38,6 @@ func (t *Tree) Insert(n *net.IPNet, value interface{}) {
 	node := t
 	for i := 0; i < maskLen; i++ {
 		bit := (n.IP[i/8] >> uint8(7-i%8)) & 0x01
-		fmt.Print(bit)
 		c := node.children[bit]
 		if c == nil {
 			c = &Tree{}
@@ -45,10 +47,12 @@ func (t *Tree) Insert(n *net.IPNet, value interface{}) {
 	}
 
 	node.value = value
-	fmt.Println()
 	return
 }
 
+// Lookup looks up the value associated with the most specific network that
+// contains the passed net.IP. If no applicable network is found nil is
+// returned.
 func (t *Tree) Lookup(ip net.IP) interface{} {
 	if ip == nil {
 		return nil
@@ -62,7 +66,6 @@ func (t *Tree) Lookup(ip net.IP) interface{} {
 	var longestPrefix *Tree
 	for i := 0; i < len(ip)*8; i++ {
 		bit := (ip[i/8] >> uint8(7-i%8)) & 0x01
-		fmt.Print(bit)
 		child := node.children[bit]
 
 		if child == nil {
@@ -74,7 +77,6 @@ func (t *Tree) Lookup(ip net.IP) interface{} {
 		}
 	}
 
-	fmt.Println()
 	if longestPrefix == nil {
 		return nil
 	}
